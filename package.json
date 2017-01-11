@@ -4,7 +4,8 @@
   "description": "El API de piker recargas.",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "author": "Eduardo Picazo",
   "license": "ISC",

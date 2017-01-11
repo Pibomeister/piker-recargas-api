@@ -1,8 +1,16 @@
 const mongoose = require('mongoose');
 
 let recargaSchema = mongoose.Schema({
-  number: String,
-  amount: Number,
+  number: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  amount: {
+      type: Number,
+      required: true,
+      trim: true
+  },
   userId: String,
   date: String
 });

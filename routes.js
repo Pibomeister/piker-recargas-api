@@ -76,34 +76,32 @@ router.get("/",  (req, res) => {
 
 router.route("/recargas")
 .get((req, res) => {
-  Recarga.find(
-    (err, recargas)=>{
-      if(err){
-        return res.status(500).send(err);
-      }
-      res.status(200).json(recargas);
-    })
+  Recarga.find().then( (recargas)=> {
+    res.json(recargas);
+    }, (err)=>{
+    res.status(400).send(err)
+  })
 })
 .post((req, res) => {
-  enviarSoap(req.body.number, req.body.amount).then(
-    body => {
-      console.log('SOAP RESPONSE', body);
-      let rec = new Recarga({
-        number: req.body.number,
-        amount: req.body.amount,
-        userId: 'piterlaanguila'
+  enviarSoap(req.body.number, req.body.amount)
+    .then(
+      body => {
+        console.log('SOAP RESPONSE', body);
+        let rec = new Recarga({
+          number: req.body.number,
+          amount: req.body.amount,
+          userId: 'piterlaanguila'
+        });
+        return rec.save();
+        })
+    .then( (rec)=> {
+        console.log('Guardando, ', req.body);
+        res.json(rec);
+      }, (err)=> {
+        res.status(400).send(err);
       });
-      rec.save((err, rec) => {
-        if(err){
-          return res.status(500).send(err);
-        }
-        console.log('Guardando',req.body);
-        res.status(200).json(rec);
-      })
-    }
-  ).catch( err => console.log('SOAP ERR', err));
+    });
 
-});
 
 
 
