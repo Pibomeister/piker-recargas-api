@@ -7,6 +7,13 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
+  "engines": {
+    "node": "6.9.2"
+  },
+  "repository" :{
+    "type" : "git"
+  , "url" : "https://github.com/Pibomeister/piker-recargas-api.git"
+},
   "author": "Eduardo Picazo",
   "license": "ISC",
   "dependencies": {

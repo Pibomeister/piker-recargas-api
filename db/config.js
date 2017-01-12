@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/recargas');
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/recargas');
 
 
 mongoose.connection.on('error', err => {
