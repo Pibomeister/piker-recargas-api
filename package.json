@@ -10,16 +10,19 @@
   "engines": {
     "node": "6.9.2"
   },
-  "repository" :{
-    "type" : "git"
-  , "url" : "https://github.com/Pibomeister/piker-recargas-api.git"
-},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pibomeister/piker-recargas-api.git"
+  },
   "author": "Eduardo Picazo",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
+    "jsonwebtoken": "^7.2.1",
+    "lodash": "^4.17.4",
     "mongoose": "^4.7.6",
-    "request": "^2.79.0"
+    "request": "^2.79.0",
+    "validator": "^6.2.1"
   }
 }

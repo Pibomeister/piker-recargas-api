@@ -1,106 +1,68 @@
 const express = require('express');
-const request = require('request');
-const Recarga = require('./models/recarga');
+const _ = require('lodash');
 
 const router = express.Router();
 
-const enviarSoap = (number, amount) => {
-  return new Promise ( (fulfill, reject) => {
-    request.post({
-      url: 'http://www.webservicex.net/geoipservice.asmx?wsdl',
-      body: `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://www.webservicex.net/">
-                <soapenv:Header/>
-                <soapenv:Body>
-                    <web:GetGeoIP>
-                        <web:IPAddress>74.125.224.72</web:IPAddress>
-                    </web:GetGeoIP>
-                </soapenv:Body>
-            </soapenv:Envelope>`,
-      headers: {
-        'Content-Type': 'text/xml'
-      }
-    },
-    (err, res, body) => {
-      if (!err && res.statusCode == 200) {
-        fulfill(body);
-      } else {
-        reject(err);
-      }
-    });
-});
-};
+const Recarga = require('./models/recarga');
+const User = require('./models/user');
+const authenticate = require('./middleware/authenticate');
+const enviarSoap = require('./middleware/soap');
 
-router.use((req, res, next)=>{
-  console.log(req.method, req.url);
-  next();
+
+router.use((req, res, next) => {
+    console.log(req.method, req.url);
+    next();
 });
 
-router.get("/",  (req, res) => {
-  res.send('Bienvenidos a mi servidorcito');
+router.get("/", (req, res) => {
+    res.send('Bienvenidos a mi servidorcito');
 });
-// Por User ID
-// router.route("/recargas/:uid")
-// .get((req, res) => {
-//   Recarga.find({userId: req.params.uid},
-//     (err, recargas)=>{
-//       if(err){
-//         return res.status(500).send(err);
-//       }
-//       res.status(200).json(recargas);
-//     })
-// })
-// .post((req, res) => {
-//   let rec = new Recarga({
-//     number: req.body.number,
-//     amount: req.body.amount,
-//     userId: req.params.uid
-//   });
-//   rec.save((err, rec) => {
-//     if(err){
-//       return res.status(500).send(err);
-//     }
-//     console.log('Guardando',req.body);
-//     res.status(200).json(rec);
-//   })
-// });
-
-// router.route("/recargas")
-//   .get((req, res) => {
-//     // recarga.find({}, callback) Para cuando se pidan con user number.
-//     res.status(200).json(testDb);
-//   })
-//   .post((req, res) => {
-//     console.log('Guardando',req.body);
-//     res.status(200).json(req.body);
-//   });
 
 router.route("/recargas")
-.get((req, res) => {
-  Recarga.find().then( (recargas)=> {
-    res.json(recargas);
-    }, (err)=>{
-    res.status(400).send(err)
-  })
-})
-.post((req, res) => {
-  enviarSoap(req.body.number, req.body.amount)
-    .then(
-      body => {
-        console.log('SOAP RESPONSE', body);
-        let rec = new Recarga({
-          number: req.body.number,
-          amount: req.body.amount,
-          userId: 'piterlaanguila'
-        });
-        return rec.save();
+    .get(authenticate, (req, res) => {
+        Recarga.find({userId: req.user._id}).then((recargas) => {
+            res.json(recargas);
+        }, (err) => {
+            res.status(400).send(err)
         })
-    .then( (rec)=> {
-        console.log('Guardando, ', req.body);
-        res.json(rec);
-      }, (err)=> {
-        res.status(400).send(err);
-      });
+    })
+    .post([authenticate, enviarSoap], (req, res) => {
+        console.log(req.user);
+        console.log('SOAP RESPONSE', req.soap);
+        let rec = new Recarga({
+            number: req.body.number,
+            amount: req.body.amount,
+            userId: req.user._id
+        });
+        return rec.save().then((rec) => {
+            console.log('Guardando, ', req.body);
+            res.json(rec);
+        }, (err) => {
+            res.status(400).send(err);
+        });
     });
+
+router.post("/users", (req, res) => {
+    const body = _.pick(req.body, ['email', 'password']);
+    const user = new User(body);
+
+    user.save().then(() => {
+        console.log('Mexicano');
+        return user.generateAuthToken();
+    }).then(token => {
+        console.log('Token there: ', token);
+        res.header('x-auth', token);
+        res.send(user);
+    }).catch((err) => {
+        console.log('Obviamente');
+        res.status(400).send(err);
+    });
+
+});
+
+router.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
 
 
 
