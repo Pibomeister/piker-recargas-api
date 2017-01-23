@@ -27,8 +27,6 @@ router.route("/recargas")
         })
     })
     .post([authenticate, enviarSoap], (req, res) => {
-        console.log(req.user);
-        console.log('SOAP RESPONSE', req.soap);
         let rec = new Recarga({
             number: req.body.number,
             amount: req.body.amount,
